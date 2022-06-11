@@ -1,26 +1,39 @@
 from typing import List, Tuple
 
-from payloads.route import Route, RouteList
+from payloads.point import Point, PointList
 import models
 
 
 async def make_point(
-    record: models.Routes
+    record: models.Points
 ):
-    point = Route(
+    point = Point(
         id=record.id,
         name=record.name,
-        points=record.points,
+        childs=record.childs,
+        longitude=record.longitude,
+        latitude=record.latitude
     )
     return point
 
 
 async def make_point_list(
-    records: List[Tuple[models.Routes]]
+    records: List[Tuple[models.Points]]
 ):
-    route_list = RouteList()
+    point_list = PointList()
     for record in records:
-        route_list.items.append(
+        point_list.items.append(
             await make_point(*record)
         )
-    return route_list
+    return point_list
+
+
+async def make_unsorted_point_list(
+    records: List[models.Points]
+):
+    point_list = PointList()
+    for record in records:
+        point_list.items.append(
+            record
+        )
+    return point_list

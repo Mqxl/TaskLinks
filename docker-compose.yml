@@ -10,21 +10,6 @@ services:
             POSTGRES_PASSWORD: 'secret'
             POSTGRES_DATABASE: 'ami'
         restart: always
-        links:
-            - redis
 
         volumes:
             - './data:/data'
-
-    redis:
-        image: bitnami/redis:6.2
-        ports:
-            - '6379:6379'
-        environment:
-            REDIS_PASSWORD: 'secret'
-            ALLOW_EMPTY_PASSWORD: 'yes'
-            REDIS_AOF_ENABLED: 'no'
-        volumes:
-            - './data/redis-persistence:/bitnami/redis/data'
-            - '.redis.conf'
-        restart: always

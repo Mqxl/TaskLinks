@@ -1,77 +1,81 @@
 from typing import Type
-
-import models
 from alembic.devsettings import session
-from sqlalchemy import select, insert, and_, Integer, cast, func
+from sqlalchemy import select, insert, func
 from .adapter import *
 from models import Base
 
 
 async def user_get_stmt(
-    model: Type[Base],
     username: str,
 ):
     stmt = select(
-        model
+        models.Users
     ).where(
-        model.name == username
+        models.Users.name == username
     )
     record = (await session.execute(stmt)).one()
 
     return await make_user(*record)
 
 
-async def point_select_stmt(
-    model: Type[Base]
-):
-    stmt = select(model)
+async def point_select_stmt():
+    stmt = select(models.Points)
     records = (await session.execute(stmt)).all()
     return await make_point_list(records)
 
 
-async def routes_select_stmt(
-    model: Type[Base]
+async def point_select_stmt_with_filter(
+    ids: List[str]
 ):
-    stmt = select(model)
+    stmt = select(models.Points).where(func.lower(models.Points.name).in_([i.lower() for i in ids]))
     records = (await session.execute(stmt)).all()
     return await make_point_list(records)
+
+
+async def get_point_stmt(
+    name: str
+):
+    stmt = select(models.Points).where(func.lower(models.Points.name) == name.lower())
+    record = (await session.execute(stmt)).one()
+    return await make_point(*record)
+
+
+async def routes_select_stmt():
+    stmt = select(models.Routes)
+    records = (await session.execute(stmt)).all()
+    return await make_route_list(records)
 
 
 async def routes_insert_stmt(
-    model: Type[Base],
-    from_point: str,
-    to_point: str,
-    username: str
+    route: List[str],
+    route_name: str,
+    user_id: int,
+    duration: str
 ):
     value = {
-        'name': username,
-        'points': [from_point, to_point]
+        'name': route_name,
+        'user_id': user_id,
+        'duration': duration,
+        'points': route
     }
     stmt = insert(
-        model
+        models.Routes
     ).values(
         value
-    ).returning(model)
+    ).returning(models.Routes)
     route = (await session.execute(stmt)).all()
     await session.commit()
     return route
 
 
-async def get_route_recursive(
-    from_point: str,
-    to_point: str
+async def point_select_by_ids(
+    model: Type[Base],
+    ids: List[int]
 ):
-    val = select(func.unnest(models.Points.childs))
-    first_stmt = select(models.Points).where(models.Points.name == from_point).cte(recursive=True)
-    second_stmt = select(models.Points).where(
-        and_(
-            cast(val, Integer) == models.Points.id,
-            models.Points.name == to_point
-        )
-    )
-    stmt = select(first_stmt.union_all(second_stmt))
-    route = (await session.execute(stmt)).all()
-    return route
+    stmt = select(model).where(model.id.in_(ids))
+    records = (await session.execute(stmt)).all()
+    return await make_point_list(records)
+
 
 
 
