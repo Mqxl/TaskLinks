@@ -28,6 +28,7 @@ session = session_factory()
 redis_pool = BlockingConnectionPool.from_url(
     url=REDIS_URL,
     max_connections=REDIS_POOL_SIZE,
-    timeout=REDIS_WAIT_TIMEOUT
+    timeout=REDIS_WAIT_TIMEOUT,
+    decode_responses=True
 )
 redis = Redis(connection_pool=redis_pool)
