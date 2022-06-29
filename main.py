@@ -23,11 +23,27 @@ html = """
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
         </form>
-        <button onclick="getLocation()">Try It</button>
+        <button onclick="newfunc()">Try It</button>
         <ul id='messages'>
         </ul>
         <script>
             var ws = new WebSocket("ws://localhost:9000/ws");
+            const getRandom = () => {
+              let random = Math.random() * 150;
+              let random2 = Math.random() * 150;
+              let dictionary = {
+                long: random,
+                latt: random2
+              }
+              console.log(dictionary)
+              ws.send(JSON.stringify(dictionary))
+            }
+            const newfunc = () => {
+            console.log('111')
+                setInterval(()=>{
+                  getRandom()
+                },500)
+            }
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
@@ -35,23 +51,7 @@ html = """
                 message.appendChild(content)
                 messages.appendChild(message)
             };
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(showPosition)
-                input.value = ''
-                event.preventDefault()
-            }
-            function getLocation() {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPosition);
-                  } else {
-                    x.innerHTML = "Geolocation is not supported by this browser.";
-                  }
-                }
-                
-            function showPosition(position) {
-                ws.send(position.coords.latitude + Math.floor(Math.random() * 5) + ", " + position.coords.longitude + Math.floor(Math.random() * 5))
-            }
+            
         </script>
     </body>
 </html>
@@ -82,15 +82,12 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
         data = await websocket.receive_text()
+        print(data)
         await redis.set('data', data)
-        geoLoc = Nominatim(user_agent="GetLoc")
-        locname = geoLoc.reverse(data)
-        await websocket.send_text(f"Message text was: {locname.address}")
+        await websocket.send_text(f"Message text was: {data}")
 
 
 @app.get('/get_data')
 async def data():
     geo = await redis.get('data')
-    geoLoc = Nominatim(user_agent="GetLoc")
-    locname = geoLoc.reverse(geo)
-    return locname.address
+    return geo
