@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from aioredis import Redis, BlockingConnectionPool
 
 
-DB_HOST = 'localhost'
+DB_HOST = '25.40.116.130'
 DB_NAME = 'ami'
 DB_USER = 'ami'
 DB_PASSWORD = 'secret'
@@ -19,7 +19,8 @@ DATABASE_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 REDIS_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}'
 
 engine = create_async_engine(
-    DATABASE_URL
+    DATABASE_URL,
+    echo=True
 )
 session_factory = sessionmaker(engine, class_=AsyncSession)
 

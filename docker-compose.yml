@@ -11,5 +11,4 @@ services:
             POSTGRES_DATABASE: 'ami'
         restart: always
 
-        volumes:
-            - './data:/data'
+       
